@@ -90,12 +90,17 @@ export const smsTurn = task({
       let threadStatus: SmsThreadRow["status"] = threadRow.status;
 
       if (decision.action === "book" && decision.slot_iso) {
+        // Same labeling as the voice path — address first and clearly marked,
+        // so it's the line a tech actually sees glancing at the calendar event.
+        const bookingNotes = [newContext.address ? `Service address: ${newContext.address}` : null, newContext.issue ?? null]
+          .filter(Boolean)
+          .join("\n");
         const result = await bookingAdapterFor(client).book({
           startIso: decision.slot_iso,
           name: newContext.name ?? "Text customer",
           phone: payload.from,
           timezone: client.timezone,
-          notes: newContext.issue ?? "",
+          notes: bookingNotes,
         });
         if (result.ok) {
           const local = DateTime.fromISO(result.startIso!, { zone: client.timezone }).toFormat("cccc, LLLL d 'at' h:mm a");
@@ -110,6 +115,7 @@ export const smsTurn = task({
               start_at: result.startIso,
               customer_name: newContext.name ?? null,
               customer_phone: payload.from,
+              address: newContext.address ?? null,
               issue: newContext.issue ?? null,
             })
             .select("id")
@@ -139,6 +145,7 @@ export const smsTurn = task({
             provider: client.booking_method,
             customer_name: newContext.name ?? null,
             customer_phone: payload.from,
+            address: newContext.address ?? null,
             issue: newContext.issue ?? null,
             preferred_windows: decision.slot_iso,
           });

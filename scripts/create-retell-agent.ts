@@ -59,9 +59,10 @@ async function main() {
           slot_iso: { type: "string", description: "The slot_iso value of the slot the caller accepted" },
           name: { type: "string", description: "Caller's name" },
           phone: { type: "string", description: "Callback number, E.164 if possible" },
+          address: { type: "string", description: "Service address where the tech needs to go — always collect this before booking" },
           issue: { type: "string", description: "One-line description of the issue" },
         },
-        required: ["slot_iso", "name"],
+        required: ["slot_iso", "name", "address"],
       },
     },
     {
@@ -75,10 +76,11 @@ async function main() {
         properties: {
           name: { type: "string" },
           phone: { type: "string" },
+          address: { type: "string", description: "Service address where the tech needs to go — always collect this" },
           issue: { type: "string" },
           preferred_windows: { type: "string", description: "Caller's preferred days/times, in their words" },
         },
-        required: ["name", "issue"],
+        required: ["name", "address", "issue"],
       },
     },
     {

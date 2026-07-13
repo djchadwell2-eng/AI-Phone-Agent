@@ -67,12 +67,17 @@ retellFunctionRoutes.post("/book_appointment", async (c) => {
     const client = await resolveClient(body);
     if (!client) return c.json({ result: "Booking failed. Collect preferred days and times instead." });
     const phone = String(args.phone || body.call?.from_number || "");
+    const address = String(args.address ?? "");
+    const issue = String(args.issue ?? "");
+    // Address goes first and labeled — this is the line the tech actually needs
+    // to see glancing at the calendar event, not buried after the issue text.
+    const notes = [address ? `Service address: ${address}` : null, issue].filter(Boolean).join("\n");
     const result = await bookingAdapterFor(client).book({
       startIso: String(args.slot_iso ?? ""),
       name: String(args.name ?? "Caller"),
       phone,
       timezone: client.timezone,
-      notes: String(args.issue ?? ""),
+      notes,
     });
 
     // Find the calls row if post-call already made one (usually not yet — call is live).
@@ -87,7 +92,8 @@ retellFunctionRoutes.post("/book_appointment", async (c) => {
         start_at: result.ok ? result.startIso : null,
         customer_name: String(args.name ?? ""),
         customer_phone: phone,
-        issue: String(args.issue ?? ""),
+        address,
+        issue,
         preferred_windows: result.ok ? null : String(args.preferred_windows ?? ""),
       })
       .select("id")
@@ -127,6 +133,7 @@ retellFunctionRoutes.post("/request_callback", async (c) => {
       provider: client.booking_method,
       customer_name: String(args.name ?? ""),
       customer_phone: String(args.phone || body.call?.from_number || ""),
+      address: String(args.address ?? ""),
       issue: String(args.issue ?? ""),
       preferred_windows: String(args.preferred_windows ?? ""),
     });
