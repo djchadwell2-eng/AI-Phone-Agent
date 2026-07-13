@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { env } from "../lib/env.js";
 import { db } from "../lib/supabase.js";
 import { calcomRoutes } from "./calcom.js";
+import { legalRoutes } from "./legal.js";
 import { retellFunctionRoutes } from "./retell-functions.js";
 import { retellRoutes } from "./retell.js";
 import { twilioRoutes } from "./twilio.js";
@@ -27,6 +28,7 @@ app.get("/health", async (c) => {
   }
 });
 
+app.route("/", legalRoutes); // /privacy, /terms — required public URLs for Twilio A2P campaign registration
 app.route("/webhooks/twilio", twilioRoutes);
 app.route("/webhooks/retell", retellRoutes);
 app.route("/webhooks/retell/functions", retellFunctionRoutes);

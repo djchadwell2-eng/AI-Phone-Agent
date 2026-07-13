@@ -47,5 +47,8 @@ Post-call simply doesn't persist `recording_url` when the flag is off. Consent n
 ### Costs in `calls`
 Retell: `call_cost.combined_cost` from the API (cents). OpenAI: computed from token usage at pinned prices in `src/lib/openai.ts`. Twilio trunk minutes: estimated at ~1¢/min — good enough to trend; labeled as estimate in reports.
 
+### Twilio trunk phone-number assignment: use IncomingPhoneNumber.trunkSid, not Trunks/{sid}/PhoneNumbers
+Twilio's documented sub-resource `POST /v1/Trunks/{TrunkSid}/PhoneNumbers` (and the Node SDK's `trunks(sid).phoneNumbers.create()`) returned a bare 404 on this account when tested directly against the raw API — not an SDK issue. The working equivalent, confirmed live: `PUT /IncomingPhoneNumbers/{Sid}` with a `TrunkSid` param (Node: `incomingPhoneNumbers(sid).update({ trunkSid })`), which sets the same `trunk_sid` field and produces an identical result. `scripts/connect-twilio-number.ts` uses this method. If Twilio re-enables the sub-resource for this account later, both approaches should remain equivalent — no need to revert.
+
 ### Replaced the original WAT-framework CLAUDE.md
 The repo's original CLAUDE.md prescribed Python `tools/` + `workflows/`; the locked architecture is TypeScript + Trigger.dev. New CLAUDE.md keeps the spirit (deterministic scripts, documented SOPs, env-only secrets) with this stack's layout.

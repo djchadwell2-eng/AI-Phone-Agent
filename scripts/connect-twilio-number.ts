@@ -94,25 +94,29 @@ async function main() {
   }
 
   // 4. Put the number on the trunk + point its SMS webhook at us.
-  const onTrunk = await tw.trunking.v1.trunks(trunk.sid).phoneNumbers.list();
-  if (!onTrunk.some((p) => p.sid === phoneNumber.sid)) {
-    await tw.trunking.v1.trunks(trunk.sid).phoneNumbers.create({ phoneNumberSid: phoneNumber.sid });
-    console.log(`Assigned ${number} to trunk`);
-  }
+  // NOTE: the documented `trunks(sid).phoneNumbers.create()` sub-resource 404s
+  // on this account (confirmed against the raw API, not just the SDK) — the
+  // working method is setting `trunkSid` directly on the IncomingPhoneNumber
+  // resource, which Twilio treats as equivalent (same trunk_sid ends up set).
   await tw.incomingPhoneNumbers(phoneNumber.sid).update({
+    trunkSid: trunk.sid,
     smsUrl: `${baseUrl}/webhooks/twilio/sms`,
     smsMethod: "POST",
   });
+  console.log(`Assigned ${number} to trunk ${trunk.sid}`);
 
   // 5. Import into Retell: bind the agent + the per-call config webhook (Layer 2).
+  // NOTE: Retell deprecated the single-agent phone-number fields (inbound_agent_id)
+  // 2026-03-31 in favor of a weighted agent list — see DECISIONS.md.
   const retell = retellClient();
   const inboundWebhook = `${baseUrl}/webhooks/retell/inbound?token=${requireEnv("INTERNAL_WEBHOOK_TOKEN")}`;
+  const inboundAgents = [{ agent_id: client.retell_agent_id!, weight: 1 }];
   const importPayload = {
     phone_number: number,
     termination_uri: trunk.domainName!,
     sip_trunk_auth_username: sipUser,
     sip_trunk_auth_password: sipPass,
-    inbound_agent_id: client.retell_agent_id,
+    inbound_agents: inboundAgents,
     inbound_webhook_url: inboundWebhook,
     nickname: `${client.business_name} (${slug})`,
   };
@@ -120,10 +124,14 @@ async function main() {
     await retell.phoneNumber.import(importPayload as any);
     console.log(`Imported ${number} into Retell`);
   } catch (e: any) {
-    // Already imported → update the binding instead.
-    if (String(e?.message ?? e).match(/exist|409|400/i)) {
+    // Already imported → update the binding instead. Only fall back on an
+    // actual "already exists" conflict (409, or a message saying so) — any
+    // other error (e.g. a bad field name) must surface, not get masked here.
+    const status = e?.status ?? e?.response?.status;
+    const msg = String(e?.message ?? e);
+    if (status === 409 || /already (exists|imported)/i.test(msg)) {
       await retell.phoneNumber.update(number, {
-        inbound_agent_id: client.retell_agent_id,
+        inbound_agents: inboundAgents,
         inbound_webhook_url: inboundWebhook,
       } as any);
       console.log(`${number} already in Retell — updated agent binding + inbound webhook`);
