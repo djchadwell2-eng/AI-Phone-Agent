@@ -55,6 +55,11 @@ export function calcomAdapter(client: ClientRow): BookingAdapter {
 
     async book({ startIso, name, phone, timezone, notes }): Promise<BookingResult> {
       if (!apiKey || !eventTypeId) return { ok: false, error: `Cal.com not configured for ${client.slug}` };
+      // Callers don't give emails on the phone, and Cal.com rejects non-deliverable
+      // domains (email_domain_cannot_receive_mail — synthetic placeholders fail).
+      // Each client configures a real inbox that receives phone-booking
+      // confirmations; the caller's own confirmation travels by SMS.
+      if (!client.booking_email) return { ok: false, error: `booking_email not configured for ${client.slug}` };
       try {
         const res = await calFetch(apiKey, "/bookings", VERSION_BOOKINGS, {
           method: "POST",
@@ -63,9 +68,7 @@ export function calcomAdapter(client: ClientRow): BookingAdapter {
             eventTypeId,
             attendee: {
               name,
-              // Callers rarely give email on the phone; a routable placeholder on our
-              // domain keeps Cal.com happy and the confirmation lives in SMS anyway.
-              email: `${phone.replace(/\D/g, "")}@callers.invalid`,
+              email: client.booking_email,
               timeZone: timezone,
               phoneNumber: phone,
             },

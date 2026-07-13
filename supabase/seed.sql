@@ -7,7 +7,7 @@ insert into clients (
   slug, business_name, trade, timezone, hours,
   greeting_day, greeting_night, persona_notes,
   services, service_area, price_ranges,
-  booking_method, emergency_keywords,
+  booking_method, booking_email, emergency_keywords,
   on_call_number, owner_cell,
   features, avg_ticket_cents, recording_enabled, monthly_minute_cap, status
 ) values (
@@ -23,6 +23,7 @@ insert into clients (
   'the greater metro area, roughly a 30-mile radius of downtown',
   '{"diagnostic visit":"$89 to $129 depending on distance","seasonal tune-up":"$119"}',
   'calcom',
+  'djchadwell2@gmail.com',
   '["no heat","no air conditioning","burst pipe","water leaking","water through ceiling","carbon monoxide","co alarm","smoke"]',
   '+15139668491',
   '+15139668491',

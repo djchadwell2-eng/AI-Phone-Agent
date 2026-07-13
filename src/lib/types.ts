@@ -17,6 +17,7 @@ export interface ClientRow {
   service_area: string;
   price_ranges: Record<string, string>;
   booking_method: string;
+  booking_email: string | null;
   calcom_event_type_id: number | null;
   calcom_api_key: string | null;
   emergency_keywords: string[];

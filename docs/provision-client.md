@@ -3,7 +3,7 @@
 Onboarding = **one config file + one script run + a short manual checklist.** No code changes, ever. Budget ~30 minutes of your time plus the client's 10.
 
 ## 1. Intake (from the sales call)
-Collect: business name · trade · timezone · hours · services list · service area · the 2–3 prices they're comfortable quoting as ranges · their emergency list ("what should wake your on-call tech?") · on-call number · owner's cell · average ticket · recording yes/no (check consent-state note in the handout).
+Collect: business name · trade · timezone · hours · services list · service area · the 2–3 prices they're comfortable quoting as ranges · their emergency list ("what should wake your on-call tech?") · on-call number · owner's cell · **booking email** (real inbox — receives Cal.com confirmations for phone bookings; Cal.com rejects fake domains) · average ticket · recording yes/no (check consent-state note in the handout).
 
 ## 2. Buy their Twilio number
 Twilio Console → Buy a Number → local to the client's area code, voice + SMS. Add it to your A2P campaign (Messaging → your campaign → add number).

@@ -21,6 +21,7 @@
     "service call": "$79 to $99"
   },
   "booking_method": "calcom",
+  "booking_email": "djchadwell2@gmail.com",
   "emergency_keywords": ["burst pipe", "flooding", "water through ceiling", "sewage backup", "no water"],
   "on_call_number": "$MY_CELL",
   "owner_cell": "$MY_CELL",
