@@ -28,6 +28,17 @@ interface FnBody {
   args?: Record<string, any>;
 }
 
+/**
+ * Prefer the caller-ID over whatever the LLM passed as `phone` unless the LLM's
+ * value looks like a full number. Observed live: the agent sent phone="+1"
+ * (truthy!) which beat the real from_number in a plain `||` fallback.
+ */
+function bestPhone(argsPhone: unknown, fromNumber: string | undefined): string {
+  const candidate = String(argsPhone ?? "").replace(/[^\d+]/g, "");
+  if (candidate.replace(/\D/g, "").length >= 10) return candidate;
+  return fromNumber ?? "";
+}
+
 async function resolveClient(body: FnBody): Promise<ClientRow | null> {
   const to = body.call?.to_number;
   return to ? clientByTwilioNumber(to) : null;
@@ -66,7 +77,7 @@ retellFunctionRoutes.post("/book_appointment", async (c) => {
   try {
     const client = await resolveClient(body);
     if (!client) return c.json({ result: "Booking failed. Collect preferred days and times instead." });
-    const phone = String(args.phone || body.call?.from_number || "");
+    const phone = bestPhone(args.phone, body.call?.from_number);
     const address = String(args.address ?? "");
     const issue = String(args.issue ?? "");
     // Address goes first and labeled — this is the line the tech actually needs
@@ -132,7 +143,7 @@ retellFunctionRoutes.post("/request_callback", async (c) => {
       status: "needs_scheduling",
       provider: client.booking_method,
       customer_name: String(args.name ?? ""),
-      customer_phone: String(args.phone || body.call?.from_number || ""),
+      customer_phone: bestPhone(args.phone, body.call?.from_number),
       address: String(args.address ?? ""),
       issue: String(args.issue ?? ""),
       preferred_windows: String(args.preferred_windows ?? ""),
@@ -162,7 +173,7 @@ retellFunctionRoutes.post("/escalate_emergency", async (c) => {
       {
         clientId: client.id,
         retellCallId: body.call?.call_id ?? null,
-        callerNumber: String(args.phone || body.call?.from_number || ""),
+        callerNumber: bestPhone(args.phone, body.call?.from_number),
         callerName: String(args.name ?? "unknown"),
         issue: String(args.issue ?? "emergency reported on a call"),
         address: String(args.address ?? ""),
