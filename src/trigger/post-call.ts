@@ -140,7 +140,15 @@ export const postCall = task({
 
       // Owner notification policy: emergencies + after-hours in real time;
       // daytime routine calls batch into the 6pm digest (digest_sent=false marks them).
-      if (!missed && (isEmergency || afterHours)) {
+      // Rerun guard: the trigger idempotency key has a 1h TTL (call_analyzed can
+      // lag call_ended past it) — DB upserts tolerate a second run, an SMS doesn't.
+      const { data: alreadyAlerted } = await db()
+        .from("events")
+        .select("id")
+        .eq("type", "owner_alert")
+        .eq("call_id", callId)
+        .limit(1);
+      if (!missed && (isEmergency || afterHours) && (alreadyAlerted?.length ?? 0) === 0) {
         const lines = [
           isEmergency ? `🚨 EMERGENCY call` : `🌙 After-hours call`,
           `${extraction?.caller_name ?? "Unknown caller"} — ${fromNumber}`,

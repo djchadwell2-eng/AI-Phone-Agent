@@ -33,8 +33,20 @@ calcomRoutes.post("/", async (c) => {
   const uid: string | undefined = p.uid ?? p.bookingUid;
   if (!uid) return c.json({ ok: true });
 
-  if (!(await claimReceipt(`calcom:${event}:${uid}`))) return c.json({ ok: true });
+  const receiptKey = `calcom:${event}:${uid}`;
+  if (!(await claimReceipt(receiptKey))) return c.json({ ok: true });
 
+  try {
+    await handleCalcomEvent(event, p, uid);
+  } catch (e) {
+    // Release the receipt so Cal.com's retry gets processed instead of dropped.
+    await db().from("webhook_receipts").delete().eq("id", receiptKey);
+    throw e;
+  }
+  return c.json({ ok: true });
+});
+
+async function handleCalcomEvent(event: string, p: any, uid: string): Promise<void> {
   if (event === "BOOKING_CREATED") {
     // Voice bookings already inserted a row (with the uid) — confirm it. Rows
     // without a match are bookings made outside our flow; record those too.
@@ -65,5 +77,4 @@ calcomRoutes.post("/", async (c) => {
     await db().from("bookings").update({ status: "cancelled" }).eq("provider_booking_uid", uid);
     await logEvent({ type: "calcom_booking_cancelled", payload: { uid } });
   }
-  return c.json({ ok: true });
-});
+}

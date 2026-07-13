@@ -22,13 +22,18 @@ export const dailyDigest = schedules.task({
         const localNow = DateTime.now().setZone(client.timezone);
         if (localNow.hour !== 18) continue;
 
-        const dayStartUtc = localNow.startOf("day").toUTC().toISO()!;
+        // 36h lookback, not "since midnight": a client whose hours run past 6pm
+        // (plumber open 7am-7pm) gets calls AFTER today's digest that are still
+        // in-hours — no real-time alert. A midnight-anchored window would skip
+        // them tomorrow too and they'd never be reported. digest_sent=false is
+        // the real dedup; the window just caps how far back we ever reach.
+        const windowStartUtc = localNow.minus({ hours: 36 }).toUTC().toISO()!;
         const { data: calls } = await db()
           .from("calls")
           .select("id, from_number, summary, extracted, is_emergency, status, duration_seconds")
           .eq("client_id", client.id)
           .eq("digest_sent", false)
-          .gte("created_at", dayStartUtc);
+          .gte("created_at", windowStartUtc);
         if (!calls || calls.length === 0) continue;
 
         // Smart model writes the narrative — this text goes straight to a business owner.

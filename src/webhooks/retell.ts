@@ -6,7 +6,7 @@ import { buildDynamicVariables } from "../lib/dynamic-vars.js";
 import { reportError } from "../lib/errors.js";
 import { claimReceipt } from "../lib/idempotency.js";
 import { verifyRetellSignature } from "../lib/retell.js";
-import { clientByTwilioNumber, logEvent } from "../lib/supabase.js";
+import { clientByTwilioNumber, db, logEvent } from "../lib/supabase.js";
 
 export const retellRoutes = new Hono();
 
@@ -26,7 +26,8 @@ retellRoutes.post("/", async (c) => {
   const call = body.call;
   if (!call?.call_id) return c.json({ ok: true });
 
-  if (!(await claimReceipt(`retell:${body.event}:${call.call_id}`))) return c.json({ ok: true });
+  const receiptKey = `retell:${body.event}:${call.call_id}`;
+  if (!(await claimReceipt(receiptKey))) return c.json({ ok: true });
 
   if (body.event === "call_ended" || body.event === "call_analyzed") {
     try {
@@ -39,6 +40,8 @@ retellRoutes.post("/", async (c) => {
     } catch (e) {
       const client = call.to_number ? await clientByTwilioNumber(call.to_number).catch(() => null) : null;
       await reportError({ source: "webhook:retell", error: e, clientId: client?.id, detail: { callId: call.call_id } });
+      // Release the receipt so Retell's retry gets processed instead of dropped.
+      await db().from("webhook_receipts").delete().eq("id", receiptKey);
       return c.text("trigger failed", 500);
     }
   }

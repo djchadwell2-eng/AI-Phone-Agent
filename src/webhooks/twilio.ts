@@ -7,7 +7,7 @@ import { requireEnv } from "../lib/env.js";
 import { reportError } from "../lib/errors.js";
 import { claimReceipt } from "../lib/idempotency.js";
 import { clientByTwilioNumber, db, logEvent } from "../lib/supabase.js";
-import { matchOptKeyword, recordOptOut } from "../lib/twilio.js";
+import { matchOptKeyword, recordOptOut, sendCustomerSms } from "../lib/twilio.js";
 
 export const twilioRoutes = new Hono();
 
@@ -102,13 +102,27 @@ twilioRoutes.post("/voice-dr", async (c) => {
     });
     if (client) {
       await logEvent({ client_id: client.id, type: "voice_path_failure", payload: { callSid, from } });
-      await tasks
-        .trigger<typeof missedCallTextback>(
+      try {
+        await tasks.trigger<typeof missedCallTextback>(
           "missed-call-textback",
           { clientId: client.id, callerNumber: from, reason: "voice_path_down", callSid },
           { idempotencyKey: `textback:${callSid}` }
-        )
-        .catch((e) => reportError({ source: "webhook:voice-dr-trigger", error: e, clientId: client.id }));
+        );
+      } catch (e) {
+        await reportError({ source: "webhook:voice-dr-trigger", error: e, clientId: client.id });
+        // Twilio never re-fetches DR TwiML, so there is no retry coming — and the
+        // caller is about to hear "we're texting you". Send it inline as the last
+        // resort (the one justified direct send in a webhook: it's the disaster path).
+        if (client.twilio_number && from.startsWith("+")) {
+          await sendCustomerSms({
+            clientId: client.id,
+            from: client.twilio_number,
+            to: from,
+            body: `Sorry we missed you — this is ${client.business_name}. What do you need? Text back and we'll get you taken care of.`,
+            eventType: "textback_voice_path_down_inline",
+          }).catch((e2) => reportError({ source: "webhook:voice-dr-inline-sms", error: e2, clientId: client.id }));
+        }
+      }
     }
   }
   const say = `<?xml version="1.0" encoding="UTF-8"?><Response><Say>Sorry, we're having trouble connecting your call. We're sending you a text message right now so we can help.</Say></Response>`;
