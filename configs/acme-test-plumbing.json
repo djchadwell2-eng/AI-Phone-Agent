@@ -1,0 +1,32 @@
+{
+  "slug": "acme-test-plumbing",
+  "business_name": "Acme Test Plumbing",
+  "trade": "plumbing",
+  "timezone": "America/New_York",
+  "hours": {
+    "mon": { "open": "07:00", "close": "16:00" },
+    "tue": { "open": "07:00", "close": "16:00" },
+    "wed": { "open": "07:00", "close": "16:00" },
+    "thu": { "open": "07:00", "close": "16:00" },
+    "fri": { "open": "07:00", "close": "16:00" },
+    "sat": { "open": "08:00", "close": "12:00" },
+    "sun": null
+  },
+  "greeting_day": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant — the crew's out on jobs, but I can get you taken care of right now.",
+  "greeting_night": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant. We're closed at the moment, but I can get you booked — and if water's going where it shouldn't, I can reach our on-call plumber.",
+  "persona_notes": "Second tenant used to prove multi-tenancy (Phase 5). Same code, different config row.",
+  "services": ["drain cleaning", "water heater repair", "water heater installation", "leak repair", "toilet repair", "repiping"],
+  "service_area": "citywide plus close-in suburbs",
+  "price_ranges": {
+    "service call": "$79 to $99"
+  },
+  "booking_method": "calcom",
+  "emergency_keywords": ["burst pipe", "flooding", "water through ceiling", "sewage backup", "no water"],
+  "on_call_number": "$MY_CELL",
+  "owner_cell": "$MY_CELL",
+  "features": { "layer1": true, "layer2": true, "layer3": true, "layer4": true, "sms_agent": true, "follow_ups": true },
+  "avg_ticket_cents": 30000,
+  "recording_enabled": false,
+  "monthly_minute_cap": 300,
+  "status": "active"
+}

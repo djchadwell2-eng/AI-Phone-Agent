@@ -1,0 +1,51 @@
+{
+  "slug": "summit-heating-air",
+  "business_name": "Summit Heating & Air",
+  "trade": "hvac",
+  "timezone": "America/New_York",
+  "hours": {
+    "mon": { "open": "08:00", "close": "17:00" },
+    "tue": { "open": "08:00", "close": "17:00" },
+    "wed": { "open": "08:00", "close": "17:00" },
+    "thu": { "open": "08:00", "close": "17:00" },
+    "fri": { "open": "08:00", "close": "17:00" },
+    "sat": null,
+    "sun": null
+  },
+  "greeting_day": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant — everyone on the team is helping other customers right now, but I can get you taken care of.",
+  "greeting_night": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant. The office is closed right now, but I can help you book for tomorrow — and if this is an emergency, I can get you to our on-call tech.",
+  "persona_notes": "Family-owned HVAC company, 20 years serving the area. Warm, unhurried, plain-spoken.",
+  "services": [
+    "AC repair",
+    "AC installation",
+    "furnace repair",
+    "furnace installation",
+    "heat pump service",
+    "duct cleaning",
+    "seasonal tune-ups",
+    "thermostat installation"
+  ],
+  "service_area": "the greater metro area, roughly a 30-mile radius of downtown",
+  "price_ranges": {
+    "diagnostic visit": "$89 to $129 depending on distance",
+    "seasonal tune-up": "$119"
+  },
+  "booking_method": "calcom",
+  "emergency_keywords": [
+    "no heat",
+    "no air conditioning",
+    "burst pipe",
+    "water leaking",
+    "water through ceiling",
+    "carbon monoxide",
+    "co alarm",
+    "smoke"
+  ],
+  "on_call_number": "$MY_CELL",
+  "owner_cell": "$MY_CELL",
+  "features": { "layer1": true, "layer2": true, "layer3": true, "layer4": true, "sms_agent": true, "follow_ups": true },
+  "avg_ticket_cents": 45000,
+  "recording_enabled": true,
+  "monthly_minute_cap": 1000,
+  "status": "active"
+}
