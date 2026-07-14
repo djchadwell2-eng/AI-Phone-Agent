@@ -53,7 +53,7 @@ export function calcomAdapter(client: ClientRow): BookingAdapter {
       return slots;
     },
 
-    async book({ startIso, name, phone, timezone, notes }): Promise<BookingResult> {
+    async book({ startIso, name, phone, timezone, address, notes }): Promise<BookingResult> {
       if (!apiKey || !eventTypeId) return { ok: false, error: `Cal.com not configured for ${client.slug}` };
       // Callers don't give emails on the phone, and Cal.com rejects non-deliverable
       // domains (email_domain_cannot_receive_mail — synthetic placeholders fail).
@@ -72,6 +72,10 @@ export function calcomAdapter(client: ClientRow): BookingAdapter {
               timeZone: timezone,
               phoneNumber: phone,
             },
+            // The event's actual "Where" field — separate from notes/metadata,
+            // which Cal.com doesn't surface as the location. Only send this when
+            // we have a real address; an empty string 400s ("min length 1").
+            ...(address ? { location: { type: "attendeeAddress", address } } : {}),
             metadata: { source: "voice-agent", notes: (notes ?? "").slice(0, 500) },
           }),
         });

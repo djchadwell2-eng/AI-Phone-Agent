@@ -22,6 +22,7 @@ export interface BookingAdapter {
     name: string;
     phone: string;
     timezone: string;
+    address?: string; // service address — shown as the event's actual "Where", not just in notes
     notes?: string;
   }): Promise<BookingResult>;
 }

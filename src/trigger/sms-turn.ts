@@ -100,6 +100,7 @@ export const smsTurn = task({
           name: newContext.name ?? "Text customer",
           phone: payload.from,
           timezone: client.timezone,
+          address: newContext.address,
           notes: bookingNotes,
         });
         if (result.ok) {

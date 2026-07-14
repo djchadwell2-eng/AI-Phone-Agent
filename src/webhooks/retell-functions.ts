@@ -88,6 +88,7 @@ retellFunctionRoutes.post("/book_appointment", async (c) => {
       name: String(args.name ?? "Caller"),
       phone,
       timezone: client.timezone,
+      address,
       notes,
     });
 
