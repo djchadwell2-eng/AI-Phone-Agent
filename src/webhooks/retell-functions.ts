@@ -44,24 +44,48 @@ async function resolveClient(body: FnBody): Promise<ClientRow | null> {
   return to ? clientByTwilioNumber(to) : null;
 }
 
-// check_availability — agent asks for slots to offer. Returns 3 concrete options.
+// check_availability — agent asks for slots to offer. Speaks only 2-3 at a
+// time (reading out a whole day's openings is worse on a phone call), but can
+// be re-queried by time-of-day or a later start when those don't fit.
 retellFunctionRoutes.post("/check_availability", async (c) => {
   const body = (await c.req.json()) as FnBody;
+  const args = body.args ?? {};
   try {
     const client = await resolveClient(body);
     if (!client) return c.json({ result: "Booking system unavailable. Collect preferred days and times instead." });
     const now = DateTime.now().setZone(client.timezone);
-    const slots = await bookingAdapterFor(client).getSlots({
-      fromIso: now.plus({ hours: 2 }).toUTC().toISO()!,
+    const daysAheadMin = Math.max(0, Number(args.days_ahead_min ?? 0));
+    const timeOfDay = String(args.time_of_day ?? "any").toLowerCase();
+    const fromBase = now.plus({ hours: 2 }).plus({ days: daysAheadMin });
+
+    // Pull a wide candidate pool so a time-of-day filter has something to work
+    // with — fetching just 3 chronological slots made the agent sound like
+    // only those 3 times existed all day, even when the afternoon was wide open.
+    const candidates = await bookingAdapterFor(client).getSlots({
+      fromIso: fromBase.toUTC().toISO()!,
       toIso: now.plus({ days: 7 }).toUTC().toISO()!,
       timezone: client.timezone,
-      limit: 3,
+      limit: 20,
     });
+    const bucket = (iso: string): "morning" | "afternoon" | "evening" => {
+      const h = DateTime.fromISO(iso, { zone: client.timezone }).hour;
+      if (h < 12) return "morning";
+      if (h < 17) return "afternoon";
+      return "evening";
+    };
+    const filtered = timeOfDay === "any" ? candidates : candidates.filter((s) => bucket(s.startIso) === timeOfDay);
+    const slots = (filtered.length ? filtered : candidates).slice(0, 3);
+
     if (slots.length === 0) {
       return c.json({ result: "No open slots in the next week. Collect preferred days and times for a callback." });
     }
+    const moreExist = candidates.length > slots.length;
     return c.json({
-      result: `Available slots: ${slots.map((s) => s.label).join("; ")}. Offer these to the caller. When they pick one, call book_appointment with its slot_iso.`,
+      result: `Available slots: ${slots.map((s) => s.label).join("; ")}. Offer these as a FEW examples of what's open, not the only options.${
+        moreExist
+          ? " Plenty of other times exist too — if none of these work for the caller, ask what day or time of day they'd prefer, then call check_availability again with time_of_day and/or days_ahead_min set accordingly."
+          : ""
+      } When they pick one, call book_appointment with its slot_iso.`,
       slots: slots.map((s) => ({ label: s.label, slot_iso: s.startIso })),
     });
   } catch (e) {

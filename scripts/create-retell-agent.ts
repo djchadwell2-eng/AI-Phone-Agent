@@ -40,11 +40,26 @@ async function main() {
     {
       type: "custom",
       name: "check_availability",
-      description: "Fetch 2-3 real bookable appointment slots to offer the caller. Call before offering any times.",
+      description:
+        "Fetch a few real bookable appointment slots to offer the caller. Call before offering any times. If the caller doesn't like the offered times, call this again with time_of_day and/or days_ahead_min set to their preference — do not just repeat the same slots or invent new ones.",
       url: fnUrl("check_availability"),
       speak_during_execution: true,
       execution_message_description: "Let me check the schedule real quick.",
-      parameters: { type: "object", properties: {}, required: [] },
+      parameters: {
+        type: "object",
+        properties: {
+          time_of_day: {
+            type: "string",
+            enum: ["any", "morning", "afternoon", "evening"],
+            description: "Only set this if the caller stated a preference or rejected earlier offered times.",
+          },
+          days_ahead_min: {
+            type: "integer",
+            description: "Skip at least this many days ahead of today. Use when the caller wants something later than what you already offered (e.g. 1 for 'not tomorrow', 7 for 'next week').",
+          },
+        },
+        required: [],
+      },
     },
     {
       type: "custom",
