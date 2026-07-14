@@ -33,6 +33,10 @@ export const smsTurn = task({
         .eq("customer_number", payload.from)
         .in("status", ["active", "escalated"])
         .maybeSingle();
+      // True opt-in moment when a customer texts in cold (never had a missed-
+      // call textback) — that path's first message already carries the
+      // rate/opt-out disclosure; this one needs it added to the LLM reply below.
+      const isFreshOptIn = !thread;
       if (!thread) {
         const { data: created, error } = await db()
           .from("sms_threads")
@@ -168,6 +172,10 @@ export const smsTurn = task({
         });
       } else if (decision.action === "close") {
         threadStatus = "closed";
+      }
+
+      if (isFreshOptIn) {
+        reply = `${reply} Msg&data rates may apply. Reply STOP to opt out.`;
       }
 
       const sent = await sendCustomerSms({

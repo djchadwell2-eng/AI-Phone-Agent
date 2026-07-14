@@ -50,7 +50,10 @@ export const missedCallTextback = task({
         threadId = thread.id as string;
       }
 
-      const body = `Sorry we missed you — this is ${client.business_name}. What do you need? Text back and we'll get you taken care of.`;
+      // This is the opt-in moment for a new SMS thread — carrier/TCR vetting
+      // (and the campaign registration itself) expects the rate + opt-out
+      // disclosure on the first message, not just described elsewhere.
+      const body = `Sorry we missed you — this is ${client.business_name}. What do you need? Text back and we'll get you taken care of. Msg&data rates may apply. Reply STOP to opt out.`;
       const sent = await sendCustomerSms({
         clientId: client.id,
         from: client.twilio_number,
