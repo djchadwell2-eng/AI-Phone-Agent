@@ -147,6 +147,10 @@ async function main() {
     max_call_duration_ms: 270_000, // hard stop ~4.5 min; the prompt wraps up at ~4
     interruption_sensitivity: 0.9,
     normalize_for_speech: true,
+    // Belt-and-suspenders for callers left unsure what to say (e.g. after a
+    // greeting that lists two options): nudge instead of sitting in silence.
+    reminder_trigger_ms: 7_000,
+    reminder_max_count: 2,
   };
 
   let agentId = client.retell_agent_id;

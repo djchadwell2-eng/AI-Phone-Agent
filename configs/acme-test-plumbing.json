@@ -12,8 +12,8 @@
     "sat": { "open": "08:00", "close": "12:00" },
     "sun": null
   },
-  "greeting_day": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant — the crew's out on jobs, but I can get you taken care of right now.",
-  "greeting_night": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant. We're closed at the moment, but I can get you booked — and if water's going where it shouldn't, I can reach our on-call plumber.",
+  "greeting_day": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant — the crew's out on jobs, but I can get you taken care of right now. What's going on?",
+  "greeting_night": "Thanks for calling Acme Test Plumbing! This is Sunny, the AI assistant. We're closed at the moment, but I can get you booked for tomorrow, or if water's going where it shouldn't, I can reach our on-call plumber. Which would you like to do?",
   "persona_notes": "Second tenant used to prove multi-tenancy (Phase 5). Same code, different config row.",
   "services": ["drain cleaning", "water heater repair", "water heater installation", "leak repair", "toilet repair", "repiping"],
   "service_area": "citywide plus close-in suburbs",

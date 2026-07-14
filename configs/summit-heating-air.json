@@ -12,8 +12,8 @@
     "sat": null,
     "sun": null
   },
-  "greeting_day": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant — everyone on the team is helping other customers right now, but I can get you taken care of.",
-  "greeting_night": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant. The office is closed right now, but I can help you book for tomorrow — and if this is an emergency, I can get you to our on-call tech.",
+  "greeting_day": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant — everyone on the team is helping other customers right now, but I can get you taken care of. What's going on?",
+  "greeting_night": "Thanks for calling Summit Heating and Air! This is Sunny, the AI assistant. The office is closed right now, but I can help you book for tomorrow, or if this is an emergency I can connect you to our on-call tech. Which would you like to do?",
   "persona_notes": "Family-owned HVAC company, 20 years serving the area. Warm, unhurried, plain-spoken.",
   "services": [
     "AC repair",
